@@ -3,3 +3,6 @@ version: '${project.version}'
 main: me.rominer_11.huntedmc.HuntedMC
 api-version: 1.19
 authors: [ rominer_11 ]
+commands:
+  balance:
+    description: Check the balance of a player

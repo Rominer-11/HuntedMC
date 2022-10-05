@@ -1,7 +1,10 @@
 package me.rominer_11.huntedmc;
 
+import me.rominer_11.huntedmc.commands.balance;
 import me.rominer_11.huntedmc.files.PlayerData;
 
+import org.bukkit.Bukkit;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 
 public final class HuntedMC extends JavaPlugin implements Listener {
+
+    ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
 
     @Override
     public void onEnable() {
@@ -28,8 +33,11 @@ public final class HuntedMC extends JavaPlugin implements Listener {
         PlayerData.get().options().copyDefaults(true);
         PlayerData.save();
 
+        // Commands & events
+        this.getCommand("balance").setExecutor(new balance());
         getServer().getPluginManager().registerEvents(this, this);
 
+        Bukkit.dispatchCommand(console, "say e");
     }
 
     @Override
@@ -61,12 +69,19 @@ public final class HuntedMC extends JavaPlugin implements Listener {
         Player killer = player.getKiller();
 
         if (killer instanceof Player) {
-            HashMap<String, Object> v_data = (HashMap<String, Object>) PlayerData.get().get(String.valueOf(player.getUniqueId()));
-            HashMap<String, Object> k_data = (HashMap<String, Object>) PlayerData.get().get(String.valueOf(killer.getUniqueId()));
+            PlayerData.reload();
 
-            Double balance = (Double) v_data.get("balance");
+            HashMap<String, Object> v_data = (HashMap<String, Object>) PlayerData.get().getConfigurationSection(String.valueOf(player.getUniqueId())).getValues(false);
+            HashMap<String, Object> k_data = (HashMap<String, Object>) PlayerData.get().getConfigurationSection(String.valueOf(killer.getUniqueId())).getValues(false);
+
+            Double balance = (double) v_data.get("balance");
             v_data.put("balance", 0.00);
-            k_data.put("balance", balance);
+            k_data.put("balance", (double) k_data.get("balance") + balance);
+
+            PlayerData.get().set(String.valueOf(player.getUniqueId()), v_data);
+            PlayerData.get().set(String.valueOf(killer.getUniqueId()), k_data);
+
+            PlayerData.save();
         }
 
     }
